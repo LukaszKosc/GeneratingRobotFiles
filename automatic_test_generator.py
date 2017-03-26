@@ -209,7 +209,7 @@ class TestGenerator(object):
 
     def do_stuff_in_jira(self, comment_text):
         """
-        Method do_stuff_in_jira - first it should got better name, then it will be reporting status of scenario to jira.
+        Here we add some stub message - so we would have some conflict to fix :)
         :param comment_text:
         :return:
         """
