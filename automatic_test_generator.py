@@ -270,6 +270,11 @@ class TestGenerator(object):
                     return True
 
     def prepare_test_case(self, file):
+        """
+        Prepare test case - method used to start whole process of generating robot test file from scenario in file.
+        :param file: path to file with scenario
+        :return:
+        """
         for file in TestGenerator.files:
             if self.check_scenario_lines(file):
                 documentation = 'Some weird stuff to include in one line :) - so far, only one line is supported.'
