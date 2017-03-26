@@ -48,4 +48,3 @@
 #             if self.line_contains_bdd_starter(line_stripped):
 #                 keywords.append(self.clean_line_from_bdd_starter(line_stripped))
 #     return keywords
-sss
