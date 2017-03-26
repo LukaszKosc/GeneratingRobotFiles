@@ -50,3 +50,11 @@
 #     return keywords
 def metoda_masterowa():
     print 'to jest metoda z mastera'
+
+def metoda1():
+    """
+    Method added in branch12 - then I will go with rebase because of changes which will be introduced on master in meantime.
+    :return:
+    """
+    pass
+
