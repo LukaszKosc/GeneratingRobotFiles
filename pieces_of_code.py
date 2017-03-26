@@ -53,3 +53,10 @@ def metoda_masterowa():
 
 def druga_metoda_z_mastera():
     print 'conent drugiej metody masterowej'
+
+def metoda1():
+    """
+    Method added in branch12 - then I will go with rebase because of changes which will be introduced on master in meantime.
+    :return:
+    """
+    pass
