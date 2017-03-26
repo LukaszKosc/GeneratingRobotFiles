@@ -218,67 +218,73 @@ class TestGenerator(object):
               'assigning ticket to reporter, ... etc'
         print 'Errors: \r\n',comment_text
 
+    def verify_lines(self, scenario_lines):
+        lines_with_errors = {}
+        line_number = 0
+        for line in scenario_lines:
+            line_number += 1
+            line = TestGenerator.remove_new_line(line)
+            if self.debug:
+                print 'scenario line "{}"'.format(line)
+            is_blank_line = bool(line == '')
+            if is_blank_line:
+                lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
+                                                  'missing_bdd': False, 'missing_keyword': False,
+                                                  'argument_issue': False}
+            if not TestGenerator.line_contains_bdd_starter(line):
+                lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
+                                                  'missing_bdd': True, 'missing_keyword': False,
+                                                  'argument_issue': False}
+            else:
+                if not self.verify_keyword(line):
+                    lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
+                                                      'missing_bdd': False, 'missing_keyword': True,
+                                                      'argument_issue': False}
+                else:
+                    if not self.verify_keyword_arguments(line):
+                        lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
+                                                          'missing_bdd': False, 'missing_keyword': False,
+                                                          'argument_issue': True}
+                    # else:
+                    #     # final check of scenario - use pybot --dryrun :)
+                    #     pass
+        return lines_with_errors
+
+    def prepare_error_statements(self, lines_with_errors):
+        if lines_with_errors:
+            comment_text = 'Scenario "{}" needs work.\r\n'.format(self.scenario_name)
+            for line_no in sorted(lines_with_errors):
+                if lines_with_errors[line_no]['empty']:
+                    comment_text += 'Line no {}: is empty - please remove it.\r\n'.format(line_no)
+                elif lines_with_errors[line_no]['missing_bdd']:
+                    comment_text += 'Line no {}: "{}" has not BDD starting part - please verify it.\r\n' \
+                        .format(line_no, lines_with_errors[line_no]['content'])
+                elif lines_with_errors[line_no]['missing_keyword']:
+                    comment_text += 'Line no {}: "{}" contains not defined keyword(s) or just needs fix(es).\r\n' \
+                        .format(line_no, lines_with_errors[line_no]['content'])
+                elif lines_with_errors[line_no]['argument_issue']:
+                    comment_text += 'Line no {}: "{}" contains improper argument(s).\r\n' \
+                        .format(line_no, lines_with_errors[line_no]['content'])
+            self.do_stuff_in_jira(comment_text)
+            return False
+        else:
+            return True
+
     def check_scenario_lines(self, file):
         """
         Check scenario lines - method used to verify if lines in scenario are properly filled with keywords, arguments.
         :param file: name of file to be verified
         :return:
         """
-        lines_with_errors = {}
-        line_number = 0
+        self.scenario_name = TestGenerator.get_name_of_scenario(file)
+        self.test_steps = self.get_test_steps(file)
+
         with open(file, 'r') as scenario_file:
-            self.scenario_name = TestGenerator.get_name_of_scenario(file)
             scenario_lines = scenario_file.readlines()
-            self.test_steps = self.get_test_steps(file)
             if not scenario_lines:
                 return False
             else:
-                for line in scenario_lines:
-                    line_number += 1
-                    line = TestGenerator.remove_new_line(line)
-                    if self.debug:
-                        print 'scenario line "{}"'.format(line)
-                    is_blank_line = bool(line == '')
-                    if is_blank_line:
-                        lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
-                                                          'missing_bdd': False, 'missing_keyword': False,
-                                                          'argument_issue': False}
-                    if not TestGenerator.line_contains_bdd_starter(line):
-                        lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
-                                                          'missing_bdd': True, 'missing_keyword': False,
-                                                          'argument_issue': False}
-                    else:
-                        if not self.verify_keyword(line):
-                            lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
-                                                              'missing_bdd': False, 'missing_keyword': True,
-                                                              'argument_issue': False}
-                        else:
-                            if not self.verify_keyword_arguments(line):
-                                lines_with_errors[line_number] = {'content': line, 'empty': is_blank_line,
-                                                                  'missing_bdd': False, 'missing_keyword': False,
-                                                                  'argument_issue': True}
-                            else:
-                                # final check of scenario - use pybot --dryrun :)
-                                pass
-
-                if lines_with_errors:
-                    comment_text = 'Scenario "{}" needs work.\r\n'.format(self.scenario_name)
-                    for line_no in sorted(lines_with_errors):
-                        if lines_with_errors[line_no]['empty']:
-                            comment_text += 'Line no {}: is empty - please remove it.\r\n'.format(line_no)
-                        elif lines_with_errors[line_no]['missing_bdd']:
-                            comment_text += 'Line no {}: "{}" has not BDD starting part - please verify it.\r\n'\
-                                .format(line_no, lines_with_errors[line_no]['content'])
-                        elif lines_with_errors[line_no]['missing_keyword']:
-                            comment_text += 'Line no {}: "{}" contains not defined keyword(s) or just needs fix(es).\r\n'\
-                                .format(line_no, lines_with_errors[line_no]['content'])
-                        elif lines_with_errors[line_no]['argument_issue']:
-                            comment_text += 'Line no {}: "{}" contains improper argument(s).\r\n' \
-                                .format(line_no, lines_with_errors[line_no]['content'])
-                    self.do_stuff_in_jira(comment_text)
-                    exit(0)
-                else:
-                    return True
+                return self.prepare_error_statements(self.verify_lines(scenario_lines))
 
     def prepare_test_case(self, file):
         """
