@@ -210,7 +210,7 @@ class TestGenerator(object):
     def do_stuff_in_jira(self, comment_text):
         """
         Here we add some stub message - so we would have some conflict to fix :)
-        :param comment_text:
+        :param comment_text: now in branch12 added some piece of docstring of do_stuff_in_jira
         :return:
         """
         print 'Adding comment to jira ticket, changing status to "Ready for automation", ' \
