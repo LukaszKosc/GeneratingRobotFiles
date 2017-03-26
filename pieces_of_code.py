@@ -50,3 +50,6 @@
 #     return keywords
 def metoda_masterowa():
     print 'to jest metoda z mastera'
+
+def druga_metoda_z_mastera():
+    print 'conent drugiej metody masterowej'
