@@ -213,6 +213,11 @@ class TestGenerator(object):
         print 'Errors: \r\n',comment_text
 
     def check_scenario_lines(self, file):
+        """
+        Check scenario lines - method used to verify if lines in scenario are properly filled with keywords, arguments.
+        :param file: name of file to be verified
+        :return:
+        """
         lines_with_errors = {}
         line_number = 0
         with open(file, 'r') as scenario_file:
