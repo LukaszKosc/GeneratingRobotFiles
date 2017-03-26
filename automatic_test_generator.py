@@ -272,8 +272,8 @@ class TestGenerator(object):
     def prepare_test_case(self, file):
         """
         Prepare test case - method used to start whole process of generating robot test file from scenario in file.
+        It returns nothing, only creates robot test files according to list of files.
         :param file: path to file with scenario
-        :return:
         """
         for file in TestGenerator.files:
             if self.check_scenario_lines(file):
