@@ -208,11 +208,6 @@ class TestGenerator(object):
         return tags_list
 
     def do_stuff_in_jira(self, comment_text):
-        """
-        Method do_stuff_in_jira - first it should got better name, then it will be reporting status of scenario to jira.
-        :param comment_text:
-        :return:
-        """
         print 'Adding comment to jira ticket, changing status to "Ready for automation", ' \
               'assigning ticket to reporter, ... etc'
         print 'Errors: \r\n',comment_text
