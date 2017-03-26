@@ -210,7 +210,8 @@ class TestGenerator(object):
     def do_stuff_in_jira(self, comment_text):
         """
         Method do_stuff_in_jira - first it should got better name, then it will be reporting status of scenario to jira.
-        :param comment_text: added in branch12 - just to see if works
+        :param comment_text: it contains lines with information about current errors and problems
+                             in each line of scenario.
         :return:
         """
         print 'Adding comment to jira ticket, changing status to "Ready for automation", ' \
