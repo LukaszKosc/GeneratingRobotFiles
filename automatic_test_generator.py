@@ -23,6 +23,10 @@ class TestGenerator(object):
         return line.strip(os.linesep)
 
     @staticmethod
+    def test_method():
+        pass
+
+    @staticmethod
     def line_contains_bdd_starter(line):
         string_found = False
         for string in TestGenerator.bdd_starters:
