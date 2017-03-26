@@ -212,7 +212,7 @@ class TestGenerator(object):
         Method do_stuff_in_jira - first it should got better name, then it will be reporting status of scenario to jira.
         :param comment_text: it contains lines with information about current errors and problems
                              in each line of scenario.
-        :return:
+        :return: for now it does not returns anything
         """
         print 'Adding comment to jira ticket, changing status to "Ready for automation", ' \
               'assigning ticket to reporter, ... etc'
