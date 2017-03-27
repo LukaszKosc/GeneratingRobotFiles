@@ -6,13 +6,87 @@ import tempfile
 
 class TestGenerator(object):
     files = glob('./*.txt')
-    keywords_files = glob('./Keywords/*/*_Keywords.robot')
     bdd_starters = ['When', 'And', 'Then', 'Given']
 
     def __init__(self):
         self.debug = False
         self.scenario_name = ''
         self.test_steps = []
+        self.common_ancestors = []
+        self.keywords_files  = self.get_library_files('.\\Keywords')
+
+        # exit(0)
+
+    def get_library_files(self, catalog):
+        lib_files = []
+        for root, dir, files in os.walk(catalog):
+            for file in files:
+                filepath = os.path.join(root, file)
+                # parent_dcit = self.check_imports(catalog, filepath)
+                # print 'parent_dcit', parent_dcit
+                # self.common_ancestors.append(parent_dcit)
+                lib_files.append(filepath)
+        return lib_files
+
+    # def check_imports(self, catalog, filepath):
+    #     parent_dict = {}
+    #     parent, child, child_multiple_parents = TestGenerator.get_file_parent(catalog, filepath)
+    #     if parent and child:
+    #         if parent not in parent_dict:
+    #             parent_dict[parent] = child
+    #         else:
+    #             parent_dict[parent] += ','+child
+    #
+    #     for library, parents_of_library in child_multiple_parents.iteritems():
+    #         if len(parents_of_library.split(',')) > 1:
+    #             print 'Caution, multiple imports of the same resource!' \
+    #                   '\r\nResource files importing resource "{}": \r\n{}'\
+    #                 .format(library,''.join(['{}\r\n'.format(parent) for parent in parents_of_library.split(',')]))
+    #             return False
+    #
+    #     return parent_dict
+
+    def get_common_ancestor(self, imports_to_verify):
+        common_ancestor = ''
+        if len(imports_to_verify) >=2:
+            import_one = imports_to_verify[0]
+            for import_second in imports_to_verify[1:]:
+                import_two = import_second
+                print 'import one', import_one
+                print 'import_two', import_two
+                print 'self.common_ancestors', self.common_ancestors
+                for common_ancestor_element in self.common_ancestors:
+                    print 'common_ancestor_element', common_ancestor_element
+                    for ancestor, child_libraries in common_ancestor_element.iteritems():
+                        print 'ancestor {} child_libraries {}'.format(ancestor, child_libraries)
+                        print 'ancestor', ancestor
+                        print 'child_libraries', child_libraries
+                        if '{},{}'.format(import_one, import_two) == child_libraries \
+                            or '{},{}'.format(import_two, import_one) == child_libraries:
+                            common_ancestor = ancestor
+        return common_ancestor
+
+    # @staticmethod
+    # def get_file_parent(catalog, library_file):
+    #     parent, child = None, None
+    #     child_has_parents = {}
+    #     for root, dir, files in os.walk(catalog):
+    #         for file in files:
+    #             file_to_be_parent = os.path.join(root, file)
+    #             if file_to_be_parent != library_file:
+    #                 with open(file_to_be_parent, 'r') as parent_content:
+    #                     content_to_be_checked = parent_content.readlines()
+    #                     for line_of_content in [content_line.rstrip().rstrip('\r\n') for content_line in content_to_be_checked]:
+    #                         if 'Resource' in line_of_content:
+    #                             if library_file.replace(catalog, '').replace('\\', '/') in line_of_content:
+    #                                 parent = file_to_be_parent
+    #                                 child = library_file
+    #                                 if child not in child_has_parents:
+    #                                     child_has_parents[child] = parent
+    #                                 else:
+    #                                     child_has_parents[child] += parent
+    #
+    #     return parent, child, child_has_parents
 
     @staticmethod
     def get_char_number(string, character):
@@ -43,10 +117,6 @@ class TestGenerator(object):
                 line_to_check = line_to_check.replace(bdd_starter + ' ', '')
         clean_keyword = line_to_check.strip()
         return clean_keyword
-
-    @staticmethod
-    def get_library_files():
-        return TestGenerator.keywords_files
 
     @staticmethod
     def get_name_of_scenario(filename):
@@ -153,16 +223,22 @@ class TestGenerator(object):
                         break
         return equal
 
-    def get_imports(self, file):
+    def get_imports(self):
         keywords_from_scenario = [TestGenerator.clean_line_from_bdd_starter(step) for step in self.test_steps]
         imports_to_include = []
-        library_files = self.get_library_files()
-        for library_file in library_files:
-            file_to_check = library_file.replace('\\', '/')
+        for library_file in self.keywords_files:
             for keyword in keywords_from_scenario:
-                if self.keyword_in_file(file_to_check, TestGenerator.get_keyword(keyword)):
-                    if file_to_check not in imports_to_include:
-                        imports_to_include.append(file_to_check)
+                if self.keyword_in_file(library_file, TestGenerator.get_keyword(keyword)):
+                    if library_file not in imports_to_include:
+                        imports_to_include.append(library_file)
+
+        # imports_to_in = [import_line.replace('\\', '/') for import_line in imports_to_include]
+        # print 'imports_to_include', imports_to_in
+        # anc = self.get_common_ancestor(imports_to_in)
+        # print 'anc', anc
+        # if anc:
+        #     return anc
+
         return imports_to_include
 
     def get_test_steps(self, file):
@@ -177,8 +253,7 @@ class TestGenerator(object):
 
     def get_keywords_from_library(self):
         keywords = []
-        library_files = self.get_library_files()
-        for library_file in library_files:
+        for library_file in self.keywords_files:
             with open(library_file, 'r') as library_file_to_read:
                 lines = library_file_to_read.readlines()
                 for line in lines:
@@ -289,7 +364,8 @@ class TestGenerator(object):
         for file in TestGenerator.files:
             if self.check_scenario_lines(file):
                 documentation = 'Some weird stuff to include in one line :) - so far, only one line is supported.'
-                imports_to_include = os.linesep.join(['Resource${tab}'+import_line for import_line in self.get_imports(file)])
+                imports = self.get_imports()
+                imports_to_inc = os.linesep.join(['Resource${tab}'+import_line for import_line in imports])
                 test_steps = os.linesep.join(['${tab}' + test_step for test_step in self.test_steps])
                 test_body_schema = "*** Settings ***${line_sep}" \
                                    "${imports}${line_sep}" \
@@ -298,7 +374,7 @@ class TestGenerator(object):
                                    "${test-title}${line_sep}" \
                                    "${tab}[Tags]${tab}${tags}${line_sep}" \
                                    "${steps}"
-                test_body_schema = test_body_schema.replace('${imports}', imports_to_include)
+                test_body_schema = test_body_schema.replace('${imports}', imports_to_inc)
                 test_body_schema = test_body_schema.replace('${documentation}', documentation)
                 test_body_schema = test_body_schema.replace('${test-title}', self.scenario_name)
                 test_body_schema = test_body_schema.replace('${tags}', self.get_tags_list())
@@ -309,11 +385,11 @@ class TestGenerator(object):
                 print '\r\n******************************START*************************************'
                 print test_body_schema
                 print '\r\n*******************************END**************************************'
-                tmp_dir = tempfile.gettempdir()
-                tmp_dir = 'C:\\Users\\Kostek\\PycharmProjects\\GeneratingRobotFiles'
-                tmp_test_path = tmp_dir + os.sep + 'tmp_test_{}.robot'.format(self.scenario_name)
-                with open(tmp_test_path, 'w') as temp_test:
-                    temp_test.write(test_body_schema.strip(os.linesep))
+                # tmp_dir = tempfile.gettempdir()
+                # tmp_dir = 'C:\\Users\\Kostek\\PycharmProjects\\GeneratingRobotFiles'
+                # tmp_test_path = tmp_dir + os.sep + 'tmp_test_{}.robot'.format(self.scenario_name)
+                # with open(tmp_test_path, 'w') as temp_test:
+                #     temp_test.write(test_body_schema.strip(os.linesep))
 
 if __name__ == "__main__":
     tg = TestGenerator()
