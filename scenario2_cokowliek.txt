@@ -4,3 +4,4 @@ Given I close   dupa
 Then Check If this ${aram} also works
 Then Say If ${hat} keyword ${r_o} works
 Then Verify If this keyword also works
+aaa
