@@ -1,3 +1,4 @@
+aaa
 When I open   ${cokolwiek}
 Then I use     ${czegos}
 Given I close   colowiek
